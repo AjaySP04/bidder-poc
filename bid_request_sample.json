@@ -1,0 +1,52 @@
+{
+    "id": "12345",
+    "imp": [
+      {
+        "id": "1",
+        "banner": {
+          "w": 300,
+          "h": 250
+        },
+        "bidfloor": 0.05
+      }
+    ],
+    "site": {
+      "id": "67890",
+      "name": "example.com"
+    },
+    "device": {
+      "did": "abcdef123456",
+      "ip": "1.2.3.4",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1 Mobile/15E148 Safari/604.1",
+      "geo": {
+        "lat": 37.7749,
+        "lon": -122.4194
+      },
+      "make": "Apple",
+      "model": "iPhone",
+      "os": "iOS",
+      "osv": "14.5",
+      "w": 375,
+      "h": 667
+    },
+    "user": {
+      "id": "qwerty09876"
+    },
+    "test": 0,
+    "at": 1,
+    "tmax": 300,
+    "cur": [
+      "USD"
+    ],
+    "bcat": [
+      "IAB-1",
+      "IAB-2"
+    ],
+    "regs": {
+      "coppa": 0
+    },
+    "source": {
+      "tid": "abcd1234",
+      "fd": 1
+    }
+  }

@@ -1,80 +1,148 @@
 package main
 
 import (
-	"errors"
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-type bidRequest struct {
-	ID        string `json:"id"`
-	Item      string `json:"item"`
-	Completed bool   `json:"completed"`
+type BidRequest struct {
+	Id       string `json:"id"`
+	Imp      []Imp  `json:"imp"`
+	Site     Site   `json:"site"`
+	Device   Device `json:"device"`
+	User     User   `json:"user"`
+	Test     int    `json:"test"`
+	Auction  int    `json:"auction"`
+	Tmax     int    `json:"tmax"`
+	Bidfloor int    `json:"bidfloor"`
 }
 
-var bidRequests = []bidRequest{
-	{ID: "1", Item: "Item 1", Completed: false},
-	{ID: "2", Item: "Item 2", Completed: false},
-	{ID: "3", Item: "Item 3", Completed: false},
+type Imp struct {
+	Id       string  `json:"id"`
+	Banner   Banner  `json:"banner"`
+	Video    Video   `json:"video"`
+	Native   Native  `json:"native"`
+	Display  Display `json:"display"`
+	Amp      Amp     `json:"amp"`
+	Pmp      Pmp     `json:"pmp"`
+	Ext      Ext     `json:"ext"`
+	Bidfloor float32 `json:"bidfloor"`
 }
 
-func getBidRequests(context *gin.Context) {
-	context.IndentedJSON(http.StatusOK, bidRequests)
+type Banner struct {
+	W int `json:"w"`
+	H int `json:"h"`
 }
 
-func addBidRequest(context *gin.Context) {
-	var newBidRequest bidRequest
-
-	if err := context.BindJSON(&newBidRequest); err != nil {
-		return
-	}
-
-	bidRequests = append(bidRequests, newBidRequest)
-	context.IndentedJSON(http.StatusCreated, newBidRequest)
+type Video struct {
+	W int `json:"w"`
+	H int `json:"h"`
 }
 
-func getBidRequestById(id string) (*bidRequest, error) {
-	for i, t := range bidRequests {
-		if t.ID == id {
-			return &bidRequests[i], nil
-		}
-	}
-
-	return nil, errors.New("todo not found")
+type Native struct {
+	W int `json:"w"`
+	H int `json:"h"`
 }
 
-func getBidRequest(context *gin.Context) {
-	id := context.Param("id")
-	bidRequest, err := getBidRequestById(id)
-
-	if err != nil {
-		context.IndentedJSON(http.StatusNotFound, gin.H{"message": "bid request not found"})
-		return
-	}
-
-	context.IndentedJSON(http.StatusOK, bidRequest)
+type Display struct {
+	W int `json:"w"`
+	H int `json:"h"`
 }
 
-func toggleBidRequestStatus(context *gin.Context) {
-	id := context.Param("id")
-	bidRequest, err := getBidRequestById(id)
+type Amp struct {
+	W int `json:"w"`
+	H int `json:"h"`
+}
 
-	if err != nil {
-		context.IndentedJSON(http.StatusNotFound, gin.H{"message": "bid request not found"})
-		return
-	}
+type Pmp struct {
+	PrivateAuction int    `json:"private_auction"`
+	Deals          []Deal `json:"deals"`
+}
 
-	bidRequest.Completed = !bidRequest.Completed
-	context.IndentedJSON(http.StatusAccepted, bidRequest)
+type Deal struct {
+	Id string `json:"id"`
+}
+
+type Ext struct {
+	Floor float32 `json:"floor"`
+}
+
+type Site struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type Device struct {
+	Id     string `json:"id"`
+	Ip     string `json:"ip"`
+	Model  string `json:"model"`
+	Os     string `json:"os"`
+	Osver  string `json:"osver"`
+	Geo    Geo    `json:"geo"`
+	Make   string `json:"make"`
+	Width  int    `json:"w"`
+	Height int    `json:"h"`
+}
+
+type User struct {
+	Id string `json:"id"`
+}
+
+type Geo struct {
+	Lat float32 `json:"lat"`
+	Lon float32 `json:"lon"`
+}
+
+type BidResponse struct {
+	Id     string   `json:"id"`
+	Bidder string   `json:"bidder"`
+	Seat   string   `json:"seat"`
+	Price  float32  `json:"price"`
+	Adm    string   `json:"adm"`
+	Ext    Response `json:"ext"`
+}
+
+type Response struct {
+	Creative_id string `json:"creative_id"`
 }
 
 func main() {
 	router := gin.Default()
-	router.GET("/bid_requests", getBidRequests)
-	router.POST("/bid_requests", addBidRequest)
-	router.GET("/bid_requests/:id", getBidRequest)
-	router.PATCH("/bid_requests/:id", toggleBidRequestStatus)
 
-	router.Run("localhost:9090")
+	router.POST("/bid", handleBid)
+
+	router.Run(":9090")
+}
+
+func handleBid(c *gin.Context) {
+	var req BidRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// process the bid request and generate a bid response
+	bidResp := BidResponse{
+		Id:     req.Id,
+		Bidder: "OpenRTB Bidder",
+		Seat:   "123",
+		Price:  req.Imp[0].Bidfloor + 0.1,
+		Adm:    "<img src='https://'>'OpenRTB Bidder</img>'",
+		Ext: Response{
+			Creative_id: "456",
+		},
+	}
+
+	// serialize the bid response to JSON
+	respJSON, err := json.Marshal(bidResp)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to serialize response to JSON"})
+		return
+	}
+
+	// send the bid response back to the client
+	c.Data(http.StatusOK, "application/json", respJSON)
 }
